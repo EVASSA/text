@@ -1,0 +1,181 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace的值是 对应的接口的包名称+接口名称-->
+<mapper namespace="com.tjetc.mapper.UserMapper">
+    <!--结果集映射(jdbc使用sql查询的结果集 与 实体类的属性的映射)-->
+    <!--type值得是实体类(例如：User)-->
+    <resultMap id="baseMap" type="user">
+        <!--id表示主键和实体类属性映射-->
+        <!--column 表示结果集的列名称  property 表示 实体类属性名称-->
+        <id column="id" property="id"></id>
+        <!--result表示非主键和实体类属性映射-->
+        <result column="username" property="username"></result>
+        <result column="password" property="password"></result>
+        <!--column和property的值不一定一样-->
+        <result column="update_time" property="updateTime"></result>
+        <result column="create_time" property="createTime"></result>
+    </resultMap>
+
+    <!--写四大标签 select update insert delete，四大标签内写sql语句，标签内不要写注释，sql语句最后不要写分号-->
+    <!--id 值是 接口的方法名称-->
+    <!--resultType表示数据库查询的结果集 对应的 实体类型-->
+    <!--    <select id="selectAll" resultType="com.tjetc.entity.User">-->
+    <!--        select * from t_user-->
+    <!--    </select>-->
+    <select id="selectAll" resultMap="baseMap">
+        select * from t_user
+    </select>
+    <!--parameterType 表示参数类型  sql语句中 使用 #{参数名称} 用户参数站位-->
+    <!--parameterType 可以不写，让mybatis框架自己推断参数类型，如果写了，必须要写对-->
+    <select id="selectById" resultMap="baseMap" parameterType="long">
+        select * from t_user where id=#{id}
+    </select>
+    <!--insert标签-->
+    <!--方法insert（User user） 参数是User对象，所以 在sql语句 #{对象属性名称} 作为参数站位，
+    给一个方法传多个参数时，把参数封装成一个对象，对象的属性就是 #{}参数名称-->
+    <!--useGeneratedKeys="true" 表示使用自增主键-->
+    <!--keyProperty="id" insert后自增主键的值，赋值给实体类的哪个属性（id属性）-->
+    <!--keyColumn="id" 表示 自增主键的列是哪个列，可以不写-->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO t_user(username,`password`,update_time,create_time)
+        VALUES (#{username},#{password},#{updateTime},#{createTime})
+    </insert>
+    <!--更新-->
+    <update id="update">
+        update t_user
+        set `password`=#{password},
+        username=#{username},
+        update_time=#{updateTime}
+        where id=#{id}
+    </update>
+    <!--根据id删除-->
+    <delete id="deleteById">
+        delete from t_user where id=#{id}
+    </delete>
+
+    <!--动态sql之 if标签 test=表达式，表达式结果要是boolean值，true 表达式成立，就会拼接 if标签内的sql语句-->
+    <!--username 和password-->
+    <select id="selectByUsernameAndPassword" resultMap="baseMap">
+        select * from t_user where 1=1
+        <if test="username!=null and username!=''">
+            and username=#{username}
+        </if>
+        <if test="password!=null and password!=''">
+            and password=#{password}
+        </if>
+    </select>
+    <!--choose when ....... otherwise  相当于 if elseif ....... else-->
+    <select id="selectByUsernameAndPassword2" resultMap="baseMap">
+        select * from t_user where 1=1
+        <choose>
+            <when test="username!=null and username!=''">
+                and username=#{username}
+            </when>
+            <when test="password!=null and password!=''">
+                and password=#{password}
+            </when>
+            <otherwise>
+                and 2=2
+            </otherwise>
+        </choose>
+    </select>
+
+    <!--where标签：1、当where标签内有sql语句成立，sql语句后面就加上where关键字，没有成立的条件，sql语句后面 就不加where关键字-->
+    <!--2、where关键字会忽略后面第一个and或者or的关键字-->
+    <select id="selectByUsernameAndPassword3" resultMap="baseMap">
+        select * from t_user
+        <where>
+            <if test="username!=null and username!=''">
+                and username=#{username}
+            </if>
+            <if test="password!=null and password!=''">
+                and password=#{password}
+            </if>
+        </where>
+    </select>
+
+    <!--trim 功能功能强大，可以任意组合标签，以where为例-->
+    <select id="selectByUsernameAndPassword4" resultMap="baseMap">
+        select * from t_user
+        <trim prefix="where" prefixOverrides="and | or">
+            <if test="username!=null and username!=''">
+                and username=#{username}
+            </if>
+            <if test="password!=null and password!=''">
+                and password=#{password}
+            </if>
+        </trim>
+    </select>
+
+    <!--set 动态sql中 增加set关键字，根据条件，条件成立 就添加set关键在，对于最后一个set更新的 后面的逗号 去除掉-->
+    <update id="update1">
+        update t_user
+        <set>
+            <if test="username!=null and username!=''">
+                username=#{username},
+            </if>
+            <if test="password!=null and password!=''">
+                `password`=#{password},
+            </if>
+            <if test="updateTime!=null">
+                update_time=#{updateTime},
+            </if>
+        </set>
+        <where>
+            <if test="id!=null and id >0">
+                id=#{id}
+            </if>
+        </where>
+    </update>
+    <!--foreach  collection表示参数类型（列表）
+    open表示 动态拼劲参数的 开始符合 close 表示截止符号  item表示遍历集合的每个值付值的变量名称  separator表示每个变量值分隔符-->
+    <select id="selectByIds" resultMap="baseMap">
+        select * from t_user where id in
+        <foreach collection="list" open="(" close=")" item="id" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="selectByIds2" resultMap="baseMap">
+        select * from t_user where id in
+        <foreach collection="array" open="(" close=")" item="id" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <!--concat函数 表示 拼接字符与参数-->
+    <select id="selectByIdsAndLikeUsername" resultMap="baseMap">
+        select * from t_user
+        where id in
+        <foreach collection="ids" open="(" close=")" item="item" separator=",">
+            #{item}
+        </foreach>
+        AND username like concat('%',#{username},'%')
+    </select>
+
+
+    <select id="selectByUsernameAndPassword5" resultMap="baseMap">
+        select * from t_user
+        <where>
+            <if test="username!=null and username!=''">
+                and username=#{username}
+            </if>
+            <if test="password!=null and password!=''">
+                and password=#{password}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectByUsernameAndPassword6" resultMap="baseMap">
+        select * from t_user
+        <where>
+            <if test="username!=null and username!=''">
+                and username=#{username}
+            </if>
+            <if test="password!=null and password!=''">
+                and password=#{password}
+            </if>
+        </where>
+    </select>
+</mapper>

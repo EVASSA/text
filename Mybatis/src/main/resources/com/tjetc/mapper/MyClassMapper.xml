@@ -1,0 +1,47 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tjetc.mapper.MyClassMapper">
+    <insert id="insert" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        insert into myclass(name) values(#{name})
+    </insert>
+
+    <select id="selectById" resultMap="myClassMap">
+        select * from myclass where id=#{id}
+    </select>
+    <!--collection 表示 集合，ofType 表示集合元素的类型
+        select 表示 二次查询的标签id值 column 表示 结果的某列的值作为参数传给二次查询-->
+    <resultMap id="myClassMap" type="myClass">
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+
+        <collection property="students" ofType="student" select="selectByCid" column="id"></collection>
+    </resultMap>
+    <select id="selectByCid" resultMap="studentMap">
+        select * from student where cid=#{cid}
+    </select>
+    <resultMap id="studentMap" type="student">
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+    </resultMap>
+
+    <!--一对多 嵌套resultMap-->
+    <select id="selectById2" resultMap="myClassMap2">
+        select c.id cid,
+               c.name cname,
+               s.id sid,
+               s.name sname
+        from myclass c
+        inner join student s on c.id=s.cid
+        where c.id=#{id}
+    </select>
+    <resultMap id="myClassMap2" type="myClass">
+        <id column="cid" property="id"></id>
+        <result column="cname" property="name"></result>
+        <collection property="students" ofType="student" resultMap="studentMap2"></collection>
+    </resultMap>
+    <resultMap id="studentMap2" type="student">
+        <id column="sid" property="id"></id>
+        <result column="sname" property="name"></result>
+    </resultMap>
+</mapper>

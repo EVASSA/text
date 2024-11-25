@@ -1,0 +1,22 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tjetc.mapper.AdminMapper">
+    <insert id="insert" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        insert into admin(username,password,sex)
+        values(#{username},#{password},#{sex,typeHandler=com.tjetc.handlers.EnumSexTypeHandler})
+    </insert>
+
+    <select id="selectById" resultMap="adminMap">
+        select * from admin where id=#{id}
+    </select>
+    <resultMap id="adminMap" type="admin">
+        <id column="id" property="id"></id>
+        <result column="username" property="username"></result>
+        <result column="password" property="password"></result>
+        <!--typeHandler使用自定义类型处理器-->
+        <result column="sex" property="sex" typeHandler="com.tjetc.handlers.EnumSexTypeHandler"></result>
+    </resultMap>
+</mapper>
+
+<!--<id column="id" property="id"></id>: 指定了主键列与Java对象属性的映射。-->

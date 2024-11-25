@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<!--configuration 内部的子标签是有顺序的-->
+<configuration>
+    <!--加载并解析properties配置文件（把配置内容读取到内存中并保存）-->
+    <properties resource="db.properties"></properties>
+    <!--配置设置信息-->
+    <settings>
+        <!--mybatis日志输出(例如执行的sql语句和参数)，控制台-->
+        <setting name="logImpl" value="STDOUT_LOGGING"/>
+    </settings>
+    <!--自定类使用别名-->
+    <typeAliases>
+        <!--typeAlias 表示 type 表示 哪个类 alias 使用哪个别名-->
+        <!--        <typeAlias type="com.tjetc.entity.User" alias="user"></typeAlias>-->
+        <!--指定包下所有的类都有别名，别名的名称是类的名称-->
+        <!--推荐用法-->
+        <package name="com.tjetc.entity"/>
+    </typeAliases>
+    <!--配置类型处理器-->
+    <typeHandlers>
+        <!--配置指定包下所有的类是自定义类型处理器-->
+        <package name="com.tjetc.handlers"/>
+    </typeHandlers>
+    <!--配置插件-->
+    <plugins>
+        <!--配置指定插件-->
+        <plugin interceptor="com.github.pagehelper.PageInterceptor"></plugin>
+    </plugins>
+    <!--环境,可以配置多个（开发环境dev  测试环境test  生产环境prod）-->
+    <environments default="dev">
+        <environment id="dev">
+            <!--事务管理器（JDBC）-->
+            <transactionManager type="JDBC"></transactionManager>
+            <!--数据源配置（连接池）-->
+            <dataSource type="POOLED">
+                <!--${配置的key名称} 通过key获取对应的value值-->
+                <!--mysql8的驱动-->
+                <property name="driver" value="${jdbc.driver}"/>
+                <!--链接数据库的url,注意：&在xml中是特殊字符 需要转义 &amp; -->
+                <property name="url" value="${jdbc.url}"/>
+                <!--链接数据库的用户名和密码-->
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+        <!--        <environment id="test">-->
+        <!--            <transactionManager type=""></transactionManager>-->
+        <!--            <dataSource type=""></dataSource>-->
+        <!--        </environment>-->
+    </environments>
+    <!--映射文件-->
+    <mappers>
+        <!--映射文件的位置（注意:映射文件所有是目录，不是包，只有java的类有包的概念）-->
+        <!--        <mapper resource="com/tjetc/mapper/UserMapper.xml"/>-->
+        <!--        <mapper resource="com/tjetc/mapper/PersonMapper.xml"></mapper>-->
+        <!--        <mapper resource="com/tjetc/mapper/IdCardMapper.xml"></mapper>-->
+        <!--package name指定包下映射文件，不需要一个个的配置了-->
+        <package name="com.tjetc.mapper"/>
+    </mappers>
+</configuration>

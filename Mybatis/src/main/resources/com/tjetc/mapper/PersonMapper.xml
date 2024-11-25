@@ -1,0 +1,55 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tjetc.mapper.PersonMapper">
+    <insert id="insert" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        insert into person(name) values(#{name})
+    </insert>
+    <!--一对一嵌套select-->
+    <select id="selectById" resultMap="personMap">
+        select id as pid,
+        name person_name
+        from person where id=#{id}
+    </select>
+    <resultMap id="personMap" type="person">
+        <id column="pid" property="id"></id>
+        <result column="person_name" property="name"></result>
+        <!--二次查询-->
+        <!--association 表示一对一的关联查询-->
+        <!--select表示使用哪个查询的语句-->
+        <!--column 表示 使用结果集哪个列的值作为参数 传给select二次查询-->
+        <!--property 表示 查询的结果集 赋值给哪个属性-->
+        <association property="idCard" select="selectByPid" column="pid"></association>
+    </resultMap>
+    <!--二次查询select-->
+    <select id="selectByPid" resultMap="idCardMap">
+        select * from idcard where pid=#{pid}
+    </select>
+    <resultMap id="idCardMap" type="idCard">
+        <id column="id" property="id"></id>
+        <result column="code" property="code"></result>
+    </resultMap>
+
+    <!--一对一嵌套resultMap-->
+    <select id="selectById2" resultMap="personMap2">
+        select p.id,
+        p.name person_name,
+        c.id cid,
+        c.code
+        from person p
+        inner join idcard c on p.id=c.pid
+        where p.id=#{id}
+    </select>
+    <resultMap id="personMap2" type="person">
+        <id column="id" property="id"></id>
+        <result column="person_name" property="name"></result>
+        <!--一对一关联-->
+        <!--property 属性关联-->
+        <!--resultMap 嵌套映射 property属性值-->
+        <association property="idCard" resultMap="idcardMap2"></association>
+    </resultMap>
+    <resultMap id="idcardMap2" type="idcard">
+        <id column="cid" property="id"></id>
+        <result column="code" property="code"></result>
+    </resultMap>
+</mapper>
